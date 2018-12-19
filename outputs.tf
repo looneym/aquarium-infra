@@ -6,3 +6,6 @@ output "cnc_hosts_public_ips" {
   value = "${module.cnc_hosts.instance_public_ips}"
 }
 
+output "railsgoat_hosts_public_ips" {
+  value = "${module.railsgoat_hosts.instance_public_ips}"
+}

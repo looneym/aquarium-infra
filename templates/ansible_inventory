@@ -1,2 +1,5 @@
 [cnc_hosts]
 ${cnc_hosts}
+
+[railsgoat_hosts]
+${railsgoat_hosts}

@@ -31,13 +31,25 @@ module "cnc_hosts" {
   instance_type          = "t2.small"
 }
 
+module "railsgoat_hosts" {
+  source                 = "./modules/ec2"
+  ami                    = "${data.aws_ami.docker.id}"
+  count                  = "${var.railsgoat_hosts_count}"
+  subnet_id              = "${module.network.subnet_id}"
+  vpc_security_group_ids = ["${module.network.sg_ssh_id}", "${module.network.sg_web_id}"]
+  key_name               = "${var.ssh_key_name}"
+  instance_type          = "t2.small"
+}
+
 data "template_file" "ansible_inventory_template" {
   template = "${file("${path.module}/templates/ansible_inventory")}"
   depends_on = [
     "module.cnc_hosts",
+    "module.railsgoat_hosts",
   ]
   vars {
    cnc_hosts = "${join("\n", module.cnc_hosts.instance_public_ips)}"
+   railsgoat_hosts = "${join("\n", module.railsgoat_hosts.instance_public_ips)}"
   }
 }
 

@@ -11,5 +11,9 @@ variable "ssh_key_name" {
 }
 
 variable "cnc_hosts_count" {
+  default = 0
+}
+
+variable "railsgoat_hosts_count" {
   default = 1
 }
