@@ -61,3 +61,44 @@ resource "null_resource" "ansible_inventory" {
     command = "echo '${data.template_file.ansible_inventory_template.rendered}' > ansible_inventory.cfg"
   }
 }
+
+resource "aws_db_instance" "railsgoat_db" {  
+  allocated_storage        = 5  # gigabytes
+  backup_retention_period  = 7  # in days
+  db_subnet_group_name     = "${module.network.db_subnet_group_id}"
+  engine                   = "postgres"
+  engine_version           = "9.5.4"
+  identifier               = "railsgoat-db"
+  instance_class           = "db.t2.micro"
+  multi_az                 = false
+  name                     = "railsgoat_db"
+  port                     = 5432
+  publicly_accessible      = false
+  storage_encrypted        = false 
+  storage_type             = "gp2"
+  password                 = "railsgoat"
+  username                 = "railsgoat"
+  skip_final_snapshot      = true
+  vpc_security_group_ids   = ["${module.network.db_security_group_id}"]
+}
+
+data "template_file" "db_credentials_template" {
+  template = "${file("${path.module}/templates/db_credentials")}"
+  depends_on = [
+    "aws_db_instance.railsgoat_db",
+  ]
+  vars {
+   username = "${aws_db_instance.railsgoat_db.username}"
+   password = "${aws_db_instance.railsgoat_db.password}"
+   address = "${aws_db_instance.railsgoat_db.address}"
+  }
+}
+
+resource "null_resource" "db_credentials" {
+  triggers {
+    template_rendered = "${data.template_file.db_credentials_template.rendered}"
+  }
+  provisioner "local-exec" {
+    command = "echo '${data.template_file.db_credentials_template.rendered}' > db_credentials.cfg"
+  }
+}

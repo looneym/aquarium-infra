@@ -65,6 +65,29 @@ resource "aws_security_group" "easy-ec2-web_server" {
   }
 }
 
+resource "aws_security_group" "db-security-group" {  
+  name = "mydb1"
+
+  description = "RDS postgres servers (terraform-managed)"
+  vpc_id = "${aws_vpc.easy-ec2-vpc.id}"
+
+  # Only postgres in
+  ingress {
+    from_port = 5432
+    to_port = 5432
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all outbound traffic.
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 ###############################################################
 #
 #  SUBNETS
@@ -73,7 +96,23 @@ resource "aws_security_group" "easy-ec2-web_server" {
 
 resource "aws_subnet" "easy-ec2-subnet" {
   vpc_id                  = "${aws_vpc.easy-ec2-vpc.id}"
-  availability_zone       = "${var.availability_zone}"
-  cidr_block              = "10.100.2.0/24"
+  availability_zone = "us-east-1b"
+  cidr_block = "10.100.1.0/24"
   map_public_ip_on_launch = true
+}
+
+resource "aws_subnet" "easy-ec2-subnet-2" {
+  vpc_id                  = "${aws_vpc.easy-ec2-vpc.id}"
+  cidr_block = "10.100.0.0/24"
+  availability_zone = "us-east-1a"
+  map_public_ip_on_launch = true
+}
+
+resource "aws_db_subnet_group" "db-subnet-group" {
+    name = "main"
+    description = "Our main group of subnets"
+    subnet_ids = ["${aws_subnet.easy-ec2-subnet.id}", "${aws_subnet.easy-ec2-subnet-2.id}"]
+    tags {
+        Name = "MyApp DB subnet group"
+    }
 }

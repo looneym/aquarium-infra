@@ -1,4 +1,5 @@
 .terraform
 ansible_inventory.cfg
+db_credentials.cfg
 *.tfstate
 *.tfstate.backup
